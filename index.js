@@ -1,27 +1,18 @@
-document.addEventListener('submit', (e) => {
-    e.preventDefault()
-    progressConversation()
-})
+import 'dotenv/config';
+import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
+import { ChatPromptTemplate, PromptTemplate } from "@langchain/core/prompts";
+
 
 const apiKey = process.env.GOOGLE_API_KEY
 
-async function progressConversation() {
-    const userInput = document.getElementById('user-input')
-    const chatbotConversation = document.getElementById('chatbot-conversation-container')
-    const question = userInput.value
-    userInput.value = ''
+const llm = new ChatGoogleGenerativeAI({apiKey})
 
-    // add human message
-    const newHumanSpeechBubble = document.createElement('div')
-    newHumanSpeechBubble.classList.add('speech', 'speech-human')
-    chatbotConversation.appendChild(newHumanSpeechBubble)
-    newHumanSpeechBubble.textContent = question
-    chatbotConversation.scrollTop = chatbotConversation.scrollHeight
+const tweetTemplate = "Generate a promotional tweet for a product, from this product description:{productDesc}"
 
-    // add AI message
-    const newAiSpeechBubble = document.createElement('div')
-    newAiSpeechBubble.classList.add('speech', 'speech-ai')
-    chatbotConversation.appendChild(newAiSpeechBubble)
-    newAiSpeechBubble.textContent = result
-    chatbotConversation.scrollTop = chatbotConversation.scrollHeight
-}
+const tweetPrompt = PromptTemplate.fromTemplate(tweetTemplate)
+
+const tweetChain = tweetPrompt.pipe(llm)
+
+const response = await tweetChain.invoke({productDesc: "Electric shoes"})
+
+console.log(response.content)
