@@ -1,38 +1,27 @@
-import 'dotenv/config';
-import fs from "fs/promises";
-import { RecursiveCharacterTextSplitter } from "langchain/text_splitter";
-import { createClient } from '@supabase/supabase-js';
-import { SupabaseVectorStore } from '@langchain/community/vectorstores/supabase';
-import { GoogleGenerativeAIEmbeddings } from '@langchain/google-genai';
+document.addEventListener('submit', (e) => {
+    e.preventDefault()
+    progressConversation()
+})
 
-try {
-    // Read the local file
-    const text = await fs.readFile("scrimba_info.txt", "utf-8");
+const apiKey = process.env.GOOGLE_API_KEY
 
-    const splitter = new RecursiveCharacterTextSplitter({
-        chunkSize: 500,
-        separators: ["\n\n", "\n", " ", ""], 
-        chunkOverlap: 50
-    });
+async function progressConversation() {
+    const userInput = document.getElementById('user-input')
+    const chatbotConversation = document.getElementById('chatbot-conversation-container')
+    const question = userInput.value
+    userInput.value = ''
 
-    const output = await splitter.createDocuments([text]);
+    // add human message
+    const newHumanSpeechBubble = document.createElement('div')
+    newHumanSpeechBubble.classList.add('speech', 'speech-human')
+    chatbotConversation.appendChild(newHumanSpeechBubble)
+    newHumanSpeechBubble.textContent = question
+    chatbotConversation.scrollTop = chatbotConversation.scrollHeight
 
-    const sbApiKey = process.env.SUPABASE_API_KEY
-    const sbUrl = process.env.SUPABASE_URL
-    const apiKey = process.env.GOOGLE_API_KEY
-
-    const client = createClient(sbUrl, sbApiKey)
-
-    await SupabaseVectorStore.fromDocuments(
-        output,
-        new GoogleGenerativeAIEmbeddings({ apiKey }),
-        {
-            client,
-            tableName: "documents",
-        }
-    )
-
-    console.log(output);
-} catch (err) {
-    console.error(err);
+    // add AI message
+    const newAiSpeechBubble = document.createElement('div')
+    newAiSpeechBubble.classList.add('speech', 'speech-ai')
+    chatbotConversation.appendChild(newAiSpeechBubble)
+    newAiSpeechBubble.textContent = result
+    chatbotConversation.scrollTop = chatbotConversation.scrollHeight
 }
