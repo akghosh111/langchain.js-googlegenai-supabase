@@ -4,6 +4,9 @@ import { SupabaseVectorStore } from "@langchain/community/vectorstores/supabase"
 import { GoogleGenerativeAIEmbeddings } from "@langchain/google-genai";
 import { ChatPromptTemplate, PromptTemplate } from "@langchain/core/prompts";
 
+import { StringOutputParser } from "@langchain/core/output_parsers";
+
+
 import { createClient } from "@supabase/supabase-js";
 
 
@@ -45,7 +48,7 @@ const standaloneQuestionTemplate = "Given a question, convert it into standalone
 const standaloneQuestionPrompt = PromptTemplate.fromTemplate(standaloneQuestionTemplate)
 
 // Take the standaloneQuestionPrompt and PIPE the model
-const standaloneQuestionChain = standaloneQuestionPrompt.pipe(llm).pipe(retriever)
+const standaloneQuestionChain = standaloneQuestionPrompt.pipe(llm).pipe(new StringOutputParser()).pipe(retriever)
 
 // Await the response when you INVOKE the chain. 
 // Remember to pass in a question.
