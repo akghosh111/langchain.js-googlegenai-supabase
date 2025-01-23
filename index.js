@@ -1,10 +1,30 @@
 import 'dotenv/config'; 
 import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
+import { SupabaseVectorStore } from "@langchain/community/vectorstores/supabase";
+import { GoogleGenerativeAIEmbeddings } from "@langchain/google-genai";
 import { ChatPromptTemplate, PromptTemplate } from "@langchain/core/prompts";
+
+import { createClient } from "@supabase/supabase-js";
+
 
 
 
 const apiKey = process.env.GOOGLE_API_KEY
+
+const embeddings = new GoogleGenerativeAIEmbeddings({apiKey})
+const sbApiKey = process.env.SUPABASE_API_KEY
+const sbUrl = process.env.SUPABASE_URL
+const client = createClient(sbUrl, sbApiKey)
+
+const vectorStore = new SupabaseVectorStore(embeddings, {
+    client,
+    tableName: "match_documents",
+    queryName: "match_documents"
+})
+
+const retriever = vectorStore.asRetriever()
+
+
 const llm = new ChatGoogleGenerativeAI({ apiKey })
 
 /**
@@ -25,7 +45,7 @@ const standaloneQuestionTemplate = "Given a question, convert it into standalone
 const standaloneQuestionPrompt = PromptTemplate.fromTemplate(standaloneQuestionTemplate)
 
 // Take the standaloneQuestionPrompt and PIPE the model
-const standaloneQuestionChain = standaloneQuestionPrompt.pipe(llm)
+const standaloneQuestionChain = standaloneQuestionPrompt.pipe(llm).pipe(retriever)
 
 // Await the response when you INVOKE the chain. 
 // Remember to pass in a question.
